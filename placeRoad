@@ -1,0 +1,418 @@
+'
+'  Copyright: (c) 2004 Bentley Systems, Incorporated. All rights reserved.
+'
+'---------------------------------------------------------------------
+'Class Implementation for PLACECIRCLE Example
+'Description: This command draws a circle after the user has entered its
+'             desired radius
+'---------------------------------------------------------------------
+
+Option Explicit
+
+Implements IPrimitiveCommandEvents
+
+'----------------------------------------------------------------------
+'
+'           Private Data Members
+'
+'----------------------------------------------------------------------
+Private m_CablesTop As Double
+Private m_atPoints(0 To 1) As Point3d
+Private temp1(0 To 1) As Point3d
+Private temp2(0 To 1) As Point3d
+Private measPoint1(0 To 1) As Point3d
+Private measPoint2(0 To 1) As Point3d
+Private labelPoint(0 To 1) As Point3d
+Private m_boolBOCTop As Boolean
+Private m_boolBOCBottom As Boolean
+Private m_boolCablesTop As Boolean
+Private m_boolCablesBottom As Boolean
+Private m_boolEOPTop As Boolean
+Private m_boolEOPBottom As Boolean
+Private m_boolRWTop As Boolean
+Private m_boolRWBottom As Boolean
+Private m_boolSWTop As Boolean
+Private m_boolSWBottom As Boolean
+Private m_txtRoadWidth As String
+Private m_txtSWTop As Double
+Private m_txtCablesTop As Double
+Private m_txtCablesBottom As Double
+Private m_txtRoadAdjust As Double
+Private m_txtRoadName As String
+Private m_txtRWTop As Double
+Private m_txtRWBottom As Double
+Private m_txtSWBottom As Double
+Private X As Integer
+Private m_oForm As frmUserForm1
+
+' ---------------------------------------------------------------------
+Public Property Set Owner(ByRef oForm As UserForm)
+    Set m_oForm = oForm
+End Property
+
+
+Private Sub IPrimitiveCommandEvents_Cleanup()
+    Unload frmUserForm1
+End Sub
+
+
+Private Sub IPrimitiveCommandEvents_DataPoint(Point As Point3d, ByVal View As View)
+
+' check for empty textbox indicating missing information and check for
+' negative value of radius.
+ShowPrompt "Place end point4"
+'If (frmUserForm1.txtCables1.Value = "") Or (frmUserForm1.txtCables1.Value < 0) Then
+'    MsgBox "Please enter a valid value for cables", vbOKOnly + vbExclamation
+'    ShowPrompt "Place end point5"
+'    Exit Sub
+'End If
+
+ ShowPrompt "Place end point6"
+ m_CablesTop = frmUserForm1.txtCables1.Value
+ m_boolBOCTop = frmUserForm1.boolBOC1.Value
+ m_boolBOCBottom = frmUserForm1.boolBOC2.Value
+ m_boolCablesTop = frmUserForm1.boolCables1.Value
+ m_boolCablesBottom = frmUserForm1.boolCables2.Value
+ m_boolEOPTop = frmUserForm1.boolEOP1.Value
+ m_boolEOPBottom = frmUserForm1.boolEOP2.Value
+ m_boolRWTop = frmUserForm1.boolRW1.Value
+ m_boolRWBottom = frmUserForm1.boolRW2.Value
+ m_boolSWTop = frmUserForm1.boolSW1.Value
+ m_boolSWBottom = frmUserForm1.boolSW2.Value
+ m_txtRoadWidth = frmUserForm1.txtRoadWidth.Value
+ m_txtSWTop = frmUserForm1.txtSW1.Value
+ m_txtCablesTop = frmUserForm1.txtCables1.Value
+ m_txtCablesBottom = frmUserForm1.txtCables2.Value
+ m_txtRoadAdjust = frmUserForm1.txtRoadAdjust.Value
+ m_txtRoadName = frmUserForm1.txtRoadName.Value
+ m_txtRWTop = frmUserForm1.txtRW1.Value
+ m_txtRWBottom = frmUserForm1.txtRW2.Value
+ m_txtSWBottom = frmUserForm1.txtSW2.Value
+
+ShowPrompt m_txtRoadName
+m_atPoints(0) = Point
+CommandState.StartDynamics
+
+'draws the line segment'
+'draws road center'
+Dim oLineEl As LineElement
+Dim oLine2 As LineElement
+Dim oLine3 As LineElement
+Dim oLabel As TextElement
+
+
+m_atPoints(1).X = m_atPoints(0).X + 1200
+m_atPoints(1).Y = m_atPoints(0).Y
+m_atPoints(1).Z = m_atPoints(0).Z
+temp1(0) = m_atPoints(0)
+temp1(1) = m_atPoints(1)
+temp2(0) = m_atPoints(0)
+temp2(1) = m_atPoints(1)
+measPoint1(0) = temp1(0)
+measPoint1(1) = temp1(1)
+measPoint2(0) = temp2(0)
+measPoint2(1) = temp2(1)
+
+
+ ShowPrompt "Place first line"
+Set oLineEl = CreateLineElement1(Nothing, m_atPoints)
+oLineEl.Color = 4
+ActiveModelReference.AddElement oLineEl
+oLineEl.Redraw
+ShowPrompt "Placed first line"
+
+'set text name of road'
+labelPoint(0) = m_atPoints(0)
+labelPoint(1) = m_atPoints(1)
+labelPoint(0).X = labelPoint(0).X + 400
+labelPoint(1).X = labelPoint(1).X - 400
+labelPoint(0).Y = labelPoint(0).Y + 5
+labelPoint(1).Y = labelPoint(1).Y + 5
+
+Set oLabel = CreateTextElement1(Nothing, m_txtRoadName, labelPoint(0), Matrix3dIdentity)
+ActiveModelReference.AddElement oLabel
+Set oLabel = CreateTextElement1(Nothing, m_txtRoadName, labelPoint(1), Matrix3dIdentity)
+ActiveModelReference.AddElement oLabel
+
+
+'draws top road'
+ShowPrompt "Place road and meas line"
+temp1(0).Y = m_atPoints(0).Y + 70 + m_txtRoadAdjust
+temp1(1).Y = m_atPoints(1).Y + 70 + m_txtRoadAdjust
+Set oLine2 = CreateLineElement1(Nothing, temp1)
+oLine2.Color = 16
+ActiveModelReference.AddElement oLine2
+oLine2.Redraw
+
+'write eop/boc text'
+labelPoint(0) = temp1(0)
+labelPoint(1) = temp1(1)
+labelPoint(0).X = labelPoint(0).X + 400
+labelPoint(1).X = labelPoint(1).X - 400
+labelPoint(0).Y = labelPoint(0).Y + 5
+labelPoint(1).Y = labelPoint(1).Y + 5
+
+If (m_boolEOPTop = True) Then
+    Set oLabel = CreateTextElement1(Nothing, "EOP", labelPoint(0), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+    
+    Set oLabel = CreateTextElement1(Nothing, "EOP", labelPoint(1), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+End If
+
+If (m_boolBOCTop = True) Then
+    Set oLabel = CreateTextElement1(Nothing, "BOC", labelPoint(0), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+    
+    Set oLabel = CreateTextElement1(Nothing, "BOC", labelPoint(1), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+End If
+
+
+'draw meas line'
+measPoint1(0).Y = temp1(0).Y - 20
+measPoint1(1).Y = temp1(1).Y - 20
+Set oLine2 = CreateLineElement1(Nothing, measPoint1)
+oLine2.Color = 5
+ActiveModelReference.AddElement oLine2
+oLine2.Redraw
+ShowPrompt "Placed road and measure"
+
+'draw bot road'
+ShowPrompt "Place road and meas line2"
+temp2(0).Y = m_atPoints(0).Y - 70 - m_txtRoadAdjust
+temp2(1).Y = m_atPoints(1).Y - 70 - m_txtRoadAdjust
+Set oLine3 = CreateLineElement1(Nothing, temp2)
+oLine3.Color = 16
+ActiveModelReference.AddElement oLine3
+oLine3.Redraw
+
+
+'write eop/boc text'
+labelPoint(0) = temp2(0)
+labelPoint(1) = temp2(1)
+labelPoint(0).X = labelPoint(0).X + 400
+labelPoint(1).X = labelPoint(1).X - 400
+labelPoint(0).Y = labelPoint(0).Y + 5
+labelPoint(1).Y = labelPoint(1).Y + 5
+
+If (m_boolEOPBottom = True) Then
+    Set oLabel = CreateTextElement1(Nothing, "EOP", labelPoint(0), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+    Set oLabel = CreateTextElement1(Nothing, "EOP", labelPoint(1), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+End If
+
+If (m_boolBOCBottom = True) Then
+    Set oLabel = CreateTextElement1(Nothing, "BOC", labelPoint(0), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+    Set oLabel = CreateTextElement1(Nothing, "BOC", labelPoint(1), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+End If
+
+
+'draw bot meas'
+measPoint2(0).Y = temp2(0).Y + 20
+measPoint2(1).Y = temp2(1).Y + 20
+Set oLine3 = CreateLineElement1(Nothing, measPoint2)
+oLine3.Color = 5
+ActiveModelReference.AddElement oLine3
+oLine3.Redraw
+ShowPrompt "Placed road and meas line2"
+
+'draw top cables'
+
+If (m_boolCablesTop) Then
+
+    For X = 1 To m_txtCablesTop
+        temp1(0).Y = temp1(0).Y + 10
+        temp1(1).Y = temp1(1).Y + 10
+        Set oLine2 = CreateLineElement1(Nothing, temp1)
+        oLine2.Color = 3
+        oLine2.LineWeight = 3
+        ActiveModelReference.AddElement oLine2
+        oLine2.Redraw
+    Next X
+    
+End If
+
+
+'draw bottom cables'
+
+If (m_boolCablesBottom) Then
+
+    For X = 1 To m_txtCablesBottom
+        temp2(0).Y = temp2(0).Y - 10
+        temp2(1).Y = temp2(1).Y - 10
+        Set oLine3 = CreateLineElement1(Nothing, temp2)
+        oLine3.Color = 3
+        oLine3.LineWeight = 3
+        ActiveModelReference.AddElement oLine3
+        oLine3.Redraw
+    Next X
+    
+End If
+
+
+'draw top SW'
+
+If (m_boolSWTop) Then
+
+    For X = 1 To 2
+        temp1(0).Y = temp1(0).Y + 10 + m_txtSWTop
+        temp1(1).Y = temp1(1).Y + 10 + m_txtSWTop
+        Set oLine2 = CreateLineElement1(Nothing, temp1)
+        oLine2.Color = 16
+        ActiveModelReference.AddElement oLine2
+        oLine2.Redraw
+    Next X
+    
+    'label top sw'
+    labelPoint(0) = temp1(0)
+    labelPoint(1) = temp1(1)
+    labelPoint(0).X = labelPoint(0).X + 400
+    labelPoint(1).X = labelPoint(1).X - 400
+    labelPoint(0).Y = labelPoint(0).Y - 2
+    labelPoint(1).Y = labelPoint(1).Y - 2
+    
+    Set oLabel = CreateTextElement1(Nothing, m_txtSWTop & """S/W", labelPoint(0), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+    Set oLabel = CreateTextElement1(Nothing, m_txtSWTop & """S/W", labelPoint(1), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+    
+    
+End If
+
+
+
+
+'draw bottom SW'
+
+If (m_boolSWBottom) Then
+
+    For X = 1 To 2
+        temp2(0).Y = temp2(0).Y - 10 - m_txtSWBottom
+        temp2(1).Y = temp2(1).Y - 10 - m_txtSWBottom
+        Set oLine3 = CreateLineElement1(Nothing, temp2)
+        oLine3.Color = 16
+        ActiveModelReference.AddElement oLine3
+        oLine3.Redraw
+    Next X
+     
+    'label bottom sw'
+    labelPoint(0) = temp2(0)
+    labelPoint(1) = temp2(1)
+    labelPoint(0).X = labelPoint(0).X + 400
+    labelPoint(1).X = labelPoint(1).X - 400
+    labelPoint(0).Y = labelPoint(0).Y + 10
+    labelPoint(1).Y = labelPoint(1).Y + 10
+    
+    Set oLabel = CreateTextElement1(Nothing, m_txtSWBottom & """S/W", labelPoint(0), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+    Set oLabel = CreateTextElement1(Nothing, m_txtSWBottom & """S/W", labelPoint(1), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+ 
+End If
+
+
+
+'allah was here'
+' draw Top RW'
+
+
+If (m_boolRWTop) Then
+
+    temp1(0).Y = temp1(0).Y + 50
+    temp1(1).Y = temp1(1).Y + 50
+    Set oLine2 = CreateLineElement1(Nothing, temp1)
+    oLine2.Color = 2
+    'oLine2.LineStyle = 2'
+    ActiveModelReference.AddElement oLine2
+    oLine2.Redraw
+    
+        
+    'label top rw'
+    labelPoint(0) = temp1(0)
+    labelPoint(1) = temp1(1)
+    labelPoint(0).X = labelPoint(0).X + 400
+    labelPoint(1).X = labelPoint(1).X - 400
+    labelPoint(0).Y = labelPoint(0).Y + 5
+    labelPoint(1).Y = labelPoint(1).Y + 5
+    
+    Set oLabel = CreateTextElement1(Nothing, m_txtRWTop & """R/W", labelPoint(0), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+    Set oLabel = CreateTextElement1(Nothing, m_txtRWTop & """R/W", labelPoint(1), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+    
+End If
+
+' draw Bottom RW'
+
+If (m_boolRWBottom) Then
+
+    temp2(0).Y = temp2(0).Y - 50
+    temp2(1).Y = temp2(1).Y - 50
+    Set oLine3 = CreateLineElement1(Nothing, temp2)
+    oLine3.Color = 2
+    'oLine2.LineStyle = 3'
+    ActiveModelReference.AddElement oLine3
+    oLine3.Redraw
+    
+    'label top rw'
+    labelPoint(0) = temp2(0)
+    labelPoint(1) = temp2(1)
+    labelPoint(0).X = labelPoint(0).X + 400
+    labelPoint(1).X = labelPoint(1).X - 400
+    labelPoint(0).Y = labelPoint(0).Y + 5
+    labelPoint(1).Y = labelPoint(1).Y + 5
+    
+    Set oLabel = CreateTextElement1(Nothing, m_txtRWBottom & """R/W", labelPoint(0), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+    Set oLabel = CreateTextElement1(Nothing, m_txtRWBottom & """R/W", labelPoint(1), Matrix3dIdentity)
+    ActiveModelReference.AddElement oLabel
+    
+End If
+
+
+End Sub
+
+Private Sub IPrimitiveCommandEvents_Dynamics(Point As Point3d, ByVal View As View, ByVal DrawMode As MsdDrawingMode)
+
+'method called to show dynamics
+
+If DrawMode = msdDrawingModeTemporary Then
+    '  Never refresh on the erase.  Erasing
+    '  must use the same radius as the previous draw.
+    m_txtRoadName = frmUserForm1.txtRoadName.Value
+End If
+
+'display temoprary outline of the circle
+Dim oLineEl As LineElement
+Set oLineEl = CreateLineElement1(oLineEl, m_atPoints)
+oLineEl.Color = 5 ' color to indicate its a temporary display
+oLineEl.Redraw DrawMode
+
+End Sub
+
+Private Sub IPrimitiveCommandEvents_Keyin(ByVal KeyIn As String)
+End Sub
+
+Private Sub IPrimitiveCommandEvents_Reset()
+' method called when the reset event occurs
+
+' On reset, start the command again.
+CommandState.StartPrimitive Me
+End Sub
+
+Private Sub IPrimitiveCommandEvents_Start()
+'method called at the start of the command
+
+ShowCommand "VBA PlaceCircle Example"
+
+
+CommandState.StartDynamics
+ShowPrompt "Enter Values"
+End Sub
+
+
+
